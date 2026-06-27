@@ -1,0 +1,758 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Property Sale History Tracker | Real Estate Resale & Profit Tracker</title>
+<meta name="description" content="Free Property Sale History Tracker for real estate dealers. Track property listings, resale chains, buyer-seller history, and profit/loss in INR.">
+<style>
+  :root{
+    --primary:#1d4ed8;
+    --primary-dark:#1e3a8a;
+    --accent:#0d9488;
+    --accent-light:#ccfbf1;
+    --bg:#f4f6fa;
+    --card-bg:#ffffff;
+    --border:#e2e8f0;
+    --text:#1e293b;
+    --text-light:#64748b;
+    --success:#15803d;
+    --success-bg:#dcfce7;
+    --danger:#b91c1c;
+    --danger-bg:#fee2e2;
+    --warning:#b45309;
+    --warning-bg:#fef3c7;
+    --shadow:0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md:0 4px 12px rgba(0,0,0,0.08);
+    --radius:10px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    padding-bottom:40px;
+  }
+  .container{max-width:1300px;margin:0 auto;padding:0 18px;}
+
+  /* HEADER */
+  header{
+    background:linear-gradient(135deg,var(--primary-dark),var(--primary));
+    color:#fff;
+    padding:26px 0;
+    box-shadow:var(--shadow-md);
+  }
+  header .container{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  header h1{font-size:1.5rem;font-weight:700;display:flex;align-items:center;gap:10px;}
+  header h1 span.icon{font-size:1.7rem;}
+  header p{font-size:.85rem;opacity:.9;margin-top:4px;}
+  .header-actions{display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* AD SLOTS */
+  .ad-slot{
+    max-width:1300px;margin:18px auto;padding:0 18px;
+  }
+  .ad-box{
+    background:#eef1f6;border:1px dashed #c3cbd9;border-radius:8px;
+    text-align:center;color:#94a0b3;font-size:.78rem;padding:14px;
+  }
+
+  /* DASHBOARD STATS */
+  .stats-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin:22px 0;
+  }
+  .stat-card{
+    background:var(--card-bg);border-radius:var(--radius);padding:18px 20px;
+    box-shadow:var(--shadow);border-left:4px solid var(--primary);
+  }
+  .stat-card.green{border-left-color:var(--success);}
+  .stat-card.teal{border-left-color:var(--accent);}
+  .stat-card.amber{border-left-color:var(--warning);}
+  .stat-card .label{font-size:.78rem;color:var(--text-light);font-weight:600;text-transform:uppercase;letter-spacing:.4px;}
+  .stat-card .value{font-size:1.5rem;font-weight:700;margin-top:6px;color:var(--text);}
+  .stat-card .sub{font-size:.75rem;color:var(--text-light);margin-top:3px;}
+
+  /* PANEL */
+  .panel{
+    background:var(--card-bg);border-radius:var(--radius);box-shadow:var(--shadow);
+    padding:22px;margin-bottom:20px;
+  }
+  .panel h2{font-size:1.1rem;margin-bottom:16px;color:var(--primary-dark);display:flex;align-items:center;gap:8px;}
+
+  /* FORM */
+  .form-grid{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  }
+  .form-group{display:flex;flex-direction:column;gap:5px;}
+  .form-group.full{grid-column:1/-1;}
+  label{font-size:.78rem;font-weight:600;color:var(--text-light);}
+  input,select,textarea{
+    padding:10px 12px;border:1px solid var(--border);border-radius:7px;
+    font-size:.9rem;background:#fbfcfe;color:var(--text);transition:.15s;
+  }
+  input:focus,select:focus,textarea:focus{
+    outline:none;border-color:var(--primary);box-shadow:0 0 0 3px rgba(29,78,216,.12);
+  }
+  textarea{resize:vertical;min-height:60px;}
+
+  .btn{
+    padding:10px 18px;border:none;border-radius:7px;font-size:.88rem;font-weight:600;
+    cursor:pointer;transition:.15s;display:inline-flex;align-items:center;gap:6px;
+  }
+  .btn-primary{background:var(--primary);color:#fff;}
+  .btn-primary:hover{background:var(--primary-dark);}
+  .btn-accent{background:var(--accent);color:#fff;}
+  .btn-accent:hover{background:#0b7a70;}
+  .btn-outline{background:#fff;color:var(--primary);border:1px solid var(--primary);}
+  .btn-outline:hover{background:#eef2ff;}
+  .btn-danger{background:var(--danger-bg);color:var(--danger);}
+  .btn-danger:hover{background:#fecaca;}
+  .btn-sm{padding:6px 12px;font-size:.78rem;}
+  .form-actions{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;}
+
+  /* TOOLBAR */
+  .toolbar{
+    display:flex;gap:12px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:16px;
+  }
+  .toolbar .filters{display:flex;gap:10px;flex-wrap:wrap;flex:1;}
+  .toolbar input,.toolbar select{min-width:160px;}
+  .toolbar .actions{display:flex;gap:8px;}
+
+  /* PROPERTY CARDS */
+  .property-list{display:flex;flex-direction:column;gap:14px;}
+  .property-card{
+    border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;background:#fff;
+  }
+  .property-head{
+    display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;
+    padding:16px 18px;cursor:pointer;background:#f8fafc;
+  }
+  .property-head:hover{background:#f1f5f9;}
+  .property-info{display:flex;flex-direction:column;gap:3px;}
+  .property-info .addr{font-weight:700;font-size:1rem;color:var(--text);}
+  .property-info .meta{font-size:.78rem;color:var(--text-light);}
+  .property-badges{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+  .badge{
+    font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;
+  }
+  .badge.type{background:#e0e7ff;color:#3730a3;}
+  .badge.profit{background:var(--success-bg);color:var(--success);}
+  .badge.loss{background:var(--danger-bg);color:var(--danger);}
+  .badge.neutral{background:#f1f5f9;color:var(--text-light);}
+  .toggle-arrow{font-size:.8rem;color:var(--text-light);transition:.2s;}
+  .property-head.open .toggle-arrow{transform:rotate(180deg);}
+
+  .property-body{
+    padding:0 18px 18px;display:none;
+    border-top:1px solid var(--border);
+  }
+  .property-body.open{display:block;}
+
+  /* TIMELINE */
+  .timeline{margin-top:14px;position:relative;padding-left:24px;}
+  .timeline::before{
+    content:'';position:absolute;left:6px;top:6px;bottom:6px;width:2px;background:var(--border);
+  }
+  .tl-item{position:relative;margin-bottom:18px;}
+  .tl-item:last-child{margin-bottom:0;}
+  .tl-item::before{
+    content:'';position:absolute;left:-24px;top:4px;width:12px;height:12px;border-radius:50%;
+    background:var(--primary);border:2px solid #fff;box-shadow:0 0 0 2px var(--primary);
+  }
+  .tl-row{
+    display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:10px;
+    background:#f8fafc;border-radius:8px;padding:12px 14px;border:1px solid var(--border);
+  }
+  .tl-details{font-size:.85rem;}
+  .tl-details .price{font-weight:700;color:var(--primary-dark);font-size:.95rem;}
+  .tl-details .parties{color:var(--text-light);font-size:.78rem;margin-top:2px;}
+  .tl-details .date{color:var(--text-light);font-size:.75rem;margin-top:2px;}
+  .tl-pl{text-align:right;font-size:.8rem;font-weight:700;}
+  .tl-pl.profit{color:var(--success);}
+  .tl-pl.loss{color:var(--danger);}
+  .tl-actions{display:flex;gap:6px;margin-top:6px;}
+
+  .empty-state{
+    text-align:center;padding:50px 20px;color:var(--text-light);
+  }
+  .empty-state .icon{font-size:2.5rem;margin-bottom:10px;}
+
+  /* MODAL */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(15,23,42,.5);display:none;
+    align-items:center;justify-content:center;z-index:1000;padding:20px;
+  }
+  .modal-overlay.open{display:flex;}
+  .modal{
+    background:#fff;border-radius:var(--radius);padding:24px;max-width:500px;width:100%;
+    box-shadow:0 10px 40px rgba(0,0,0,.2);max-height:90vh;overflow-y:auto;
+  }
+  .modal h3{margin-bottom:14px;color:var(--primary-dark);}
+  .modal .form-grid{grid-template-columns:1fr 1fr;}
+
+  /* HINDI GUIDE */
+  .guide-box{
+    background:#fffbeb;border:1px solid #fde68a;border-radius:var(--radius);padding:20px;margin-top:20px;
+  }
+  .guide-box h2{color:#92400e;}
+  .guide-box ol{margin-left:20px;margin-top:8px;}
+  .guide-box li{margin-bottom:6px;font-size:.9rem;}
+
+  footer{text-align:center;padding:24px 0;color:var(--text-light);font-size:.8rem;}
+
+  /* RESPONSIVE */
+  @media (max-width:900px){
+    .stats-grid{grid-template-columns:repeat(2,1fr);}
+    .form-grid{grid-template-columns:1fr 1fr;}
+  }
+  @media (max-width:600px){
+    .stats-grid{grid-template-columns:1fr 1fr;}
+    .form-grid{grid-template-columns:1fr;}
+    .modal .form-grid{grid-template-columns:1fr;}
+    header .container{flex-direction:column;align-items:flex-start;}
+    .toolbar{flex-direction:column;align-items:stretch;}
+    .toolbar .filters{flex-direction:column;}
+    .toolbar input,.toolbar select{width:100%;}
+    .property-head{flex-direction:column;align-items:flex-start;}
+    .tl-row{flex-direction:column;}
+    .tl-pl{text-align:left;}
+  }
+  @media (max-width:420px){
+    .stats-grid{grid-template-columns:1fr;}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div>
+      <h1><span class="icon">🏠</span> Property Sale History Tracker</h1>
+      <p>Real estate dealers ke liye property listing &amp; resale history management</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm" onclick="exportCSV()">⬇ Export CSV</button>
+      <button class="btn btn-outline btn-sm" onclick="printReport()">🖨 Print</button>
+      <button class="btn btn-primary btn-sm" onclick="openPropertyModal()">+ Add Property</button>
+    </div>
+  </div>
+</header>
+
+<div class="ad-slot"><div class="ad-box">Advertisement Space (728x90) — AdSense Slot</div></div>
+
+<div class="container">
+
+  <!-- DASHBOARD -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="label">Total Properties</div>
+      <div class="value" id="statTotalProps">0</div>
+      <div class="sub" id="statActiveProps">0 active listing(s)</div>
+    </div>
+    <div class="stat-card teal">
+      <div class="label">Total Sale Value</div>
+      <div class="value" id="statTotalValue">₹0</div>
+      <div class="sub" id="statTotalSales">0 sale records</div>
+    </div>
+    <div class="stat-card green">
+      <div class="label">Total Profit Earned</div>
+      <div class="value" id="statTotalProfit">₹0</div>
+      <div class="sub">Across all resales</div>
+    </div>
+    <div class="stat-card amber">
+      <div class="label">Avg. Appreciation</div>
+      <div class="value" id="statAvgAppreciation">0%</div>
+      <div class="sub">Per resale (avg)</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="panel">
+    <div class="toolbar">
+      <div class="filters">
+        <input type="text" id="searchInput" placeholder="🔍 Search address, owner, buyer..." oninput="renderProperties()">
+        <select id="filterType" onchange="renderProperties()">
+          <option value="">All Types</option>
+          <option value="Residential">Residential</option>
+          <option value="Commercial">Commercial</option>
+          <option value="Plot/Land">Plot/Land</option>
+          <option value="Agricultural">Agricultural</option>
+          <option value="Industrial">Industrial</option>
+        </select>
+        <select id="sortBy" onchange="renderProperties()">
+          <option value="recent">Sort: Recently Added</option>
+          <option value="priceHigh">Sort: Price High → Low</option>
+          <option value="priceLow">Sort: Price Low → High</option>
+          <option value="name">Sort: Name A → Z</option>
+        </select>
+      </div>
+      <div class="actions">
+        <button class="btn btn-accent btn-sm" onclick="openPropertyModal()">+ Add Property</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PROPERTY LIST -->
+  <div class="panel">
+    <h2>📋 Property Listings &amp; Sale History</h2>
+    <div class="property-list" id="propertyList"></div>
+    <div class="empty-state" id="emptyState" style="display:none;">
+      <div class="icon">🏗️</div>
+      <p>Koi property add nahi hui hai. "+ Add Property" button se shuru karein.</p>
+    </div>
+  </div>
+
+  <!-- HINDI GUIDE -->
+  <div class="guide-box">
+    <h2>📖 Tool kaise use karein (Hindi Guide)</h2>
+    <ol>
+      <li><strong>Property Add karein:</strong> "+ Add Property" button par click karke property ka address, type (Residential/Commercial/Plot), size aur original purchase details bharein.</li>
+      <li><strong>Sale History Add karein:</strong> Har property card open karke "+ Add Sale Record" se naya sale entry add karein — seller, buyer, sale price aur date ke saath. Tool automatically profit/loss calculate kar dega previous record se compare karke.</li>
+      <li><strong>Resale Chain Track karein:</strong> Ek property kai baar bik sakti hai. Har baar naya record add karne se timeline mein pura resale history dikhega — kisne kab kitne mein li aur kitne mein becha.</li>
+      <li><strong>Search &amp; Filter:</strong> Upar diye search box se kisi bhi address, owner ya buyer ka naam search karein. Property type aur price ke hisaab se sort bhi kar sakte hain.</li>
+      <li><strong>Dashboard Stats:</strong> Top par diye gaye cards mein total properties, total sale value, total profit aur average appreciation% dikhta hai — pure business ka overview ek nazar mein.</li>
+      <li><strong>Export/Print:</strong> "Export CSV" button se sara data Excel mein download karein, ya "Print" se report nikal sakte hain client ko dikhane ke liye.</li>
+      <li><strong>Data Safe Hai:</strong> Sara data aapke browser ke LocalStorage mein save hota hai — refresh karne par bhi data delete nahi hoga. (Note: browser cache clear karne se data delete ho sakta hai, isliye regular CSV export karte rahein.)</li>
+      <li><strong>Property Delete karein:</strong> Kisi property ya sale record ko delete karne ke liye uske bagal mein diye red "Delete" button ka use karein.</li>
+    </ol>
+  </div>
+
+</div>
+
+<div class="ad-slot"><div class="ad-box">Advertisement Space (728x90) — AdSense Slot</div></div>
+
+<footer>Property Sale History Tracker — IncomeAIHub © 2026 | Data stored locally in your browser</footer>
+
+<!-- ADD/EDIT PROPERTY MODAL -->
+<div class="modal-overlay" id="propertyModal">
+  <div class="modal">
+    <h3 id="propertyModalTitle">Add New Property</h3>
+    <form id="propertyForm">
+      <div class="form-grid">
+        <div class="form-group full">
+          <label>Property Address *</label>
+          <input type="text" id="pAddress" placeholder="e.g. Plot 12, Sector 5, Morena" required>
+        </div>
+        <div class="form-group">
+          <label>Property Type *</label>
+          <select id="pType" required>
+            <option value="Residential">Residential</option>
+            <option value="Commercial">Commercial</option>
+            <option value="Plot/Land">Plot/Land</option>
+            <option value="Agricultural">Agricultural</option>
+            <option value="Industrial">Industrial</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Size (sq.ft / acre)</label>
+          <input type="text" id="pSize" placeholder="e.g. 1200 sqft">
+        </div>
+        <div class="form-group full">
+          <label>Original Owner Name</label>
+          <input type="text" id="pOwner" placeholder="e.g. Ramesh Sharma">
+        </div>
+        <div class="form-group">
+          <label>Original Purchase Price (₹)</label>
+          <input type="number" id="pOrigPrice" placeholder="e.g. 1500000" min="0">
+        </div>
+        <div class="form-group">
+          <label>Original Purchase Date</label>
+          <input type="date" id="pOrigDate">
+        </div>
+        <div class="form-group full">
+          <label>Notes (optional)</label>
+          <textarea id="pNotes" placeholder="Any additional details..."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Property</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('propertyModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ADD SALE RECORD MODAL -->
+<div class="modal-overlay" id="saleModal">
+  <div class="modal">
+    <h3>Add Sale Record</h3>
+    <form id="saleForm">
+      <input type="hidden" id="salePropertyId">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Seller Name *</label>
+          <input type="text" id="sSeller" required>
+        </div>
+        <div class="form-group">
+          <label>Buyer Name *</label>
+          <input type="text" id="sBuyer" required>
+        </div>
+        <div class="form-group">
+          <label>Sale Price (₹) *</label>
+          <input type="number" id="sPrice" min="0" required>
+        </div>
+        <div class="form-group">
+          <label>Sale Date *</label>
+          <input type="date" id="sDate" required>
+        </div>
+        <div class="form-group full">
+          <label>Agent / Dealer Commission (₹)</label>
+          <input type="number" id="sCommission" min="0" placeholder="0">
+        </div>
+        <div class="form-group full">
+          <label>Remarks</label>
+          <textarea id="sRemarks" placeholder="Registry, loan details, etc."></textarea>
+        </div>
+      </div>
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Save Sale Record</button>
+        <button type="button" class="btn btn-outline" onclick="closeModal('saleModal')">Cancel</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+/* ===================== DATA LAYER ===================== */
+const STORAGE_KEY = 'pshTrackerData_v1';
+let properties = [];
+
+function loadData(){
+  try{
+    const raw = localStorage.getItem(STORAGE_KEY);
+    properties = raw ? JSON.parse(raw) : [];
+  }catch(e){
+    properties = [];
+  }
+}
+function saveData(){
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(properties));
+}
+
+function uid(){
+  return 'id_' + Date.now() + '_' + Math.random().toString(36).slice(2,8);
+}
+
+function formatINR(num){
+  num = Number(num) || 0;
+  return '₹' + num.toLocaleString('en-IN');
+}
+function formatDate(d){
+  if(!d) return '—';
+  const dt = new Date(d);
+  if(isNaN(dt)) return d;
+  return dt.toLocaleDateString('en-IN', {day:'2-digit', month:'short', year:'numeric'});
+}
+
+/* ===================== STATE ===================== */
+let openCardId = null;
+
+/* ===================== MODAL HANDLING ===================== */
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+
+function openPropertyModal(){
+  document.getElementById('propertyForm').reset();
+  document.getElementById('propertyModalTitle').innerText = 'Add New Property';
+  openModal('propertyModal');
+}
+
+document.getElementById('propertyForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const newProp = {
+    id: uid(),
+    address: document.getElementById('pAddress').value.trim(),
+    type: document.getElementById('pType').value,
+    size: document.getElementById('pSize').value.trim(),
+    owner: document.getElementById('pOwner').value.trim(),
+    origPrice: parseFloat(document.getElementById('pOrigPrice').value) || 0,
+    origDate: document.getElementById('pOrigDate').value,
+    notes: document.getElementById('pNotes').value.trim(),
+    createdAt: Date.now(),
+    sales: []
+  };
+  properties.unshift(newProp);
+  saveData();
+  closeModal('propertyModal');
+  renderProperties();
+});
+
+function openSaleModal(propertyId){
+  document.getElementById('saleForm').reset();
+  document.getElementById('salePropertyId').value = propertyId;
+  openModal('saleModal');
+}
+
+document.getElementById('saleForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  const propId = document.getElementById('salePropertyId').value;
+  const prop = properties.find(p => p.id === propId);
+  if(!prop) return;
+
+  const sale = {
+    id: uid(),
+    seller: document.getElementById('sSeller').value.trim(),
+    buyer: document.getElementById('sBuyer').value.trim(),
+    price: parseFloat(document.getElementById('sPrice').value) || 0,
+    date: document.getElementById('sDate').value,
+    commission: parseFloat(document.getElementById('sCommission').value) || 0,
+    remarks: document.getElementById('sRemarks').value.trim()
+  };
+  prop.sales.push(sale);
+  prop.sales.sort((a,b) => new Date(a.date) - new Date(b.date));
+  saveData();
+  closeModal('saleModal');
+  renderProperties();
+}); 
+
+function deleteProperty(propId){
+  if(!confirm('Kya aap is property ko aur uska pura sale history delete karna chahte hain?')) return;
+  properties = properties.filter(p => p.id !== propId);
+  saveData();
+  renderProperties();
+}
+
+function deleteSale(propId, saleId){
+  if(!confirm('Kya aap is sale record ko delete karna chahte hain?')) return;
+  const prop = properties.find(p => p.id === propId);
+  if(!prop) return;
+  prop.sales = prop.sales.filter(s => s.id !== saleId);
+  saveData();
+  renderProperties();
+}
+
+/* ===================== CALCULATIONS ===================== */
+function getPropertyTimeline(prop){
+  // Build a chronological chain starting with original purchase, then sales
+  const chain = [];
+  chain.push({
+    type:'origin',
+    price: prop.origPrice,
+    date: prop.origDate,
+    buyer: prop.owner,
+    seller: '—'
+  });
+  prop.sales.forEach(s => {
+    chain.push({
+      type:'sale',
+      price: s.price,
+      date: s.date,
+      buyer: s.buyer,
+      seller: s.seller,
+      commission: s.commission,
+      remarks: s.remarks,
+      id: s.id
+    });
+  });
+  return chain;
+}
+
+function getProfitLoss(chain, index){
+  if(index === 0) return null;
+  const prev = chain[index-1].price;
+  const curr = chain[index].price;
+  const diff = curr - prev;
+  const pct = prev > 0 ? (diff/prev*100) : 0;
+  return {diff, pct};
+}
+
+function getLatestPL(prop){
+  const chain = getPropertyTimeline(prop);
+  if(chain.length < 2) return null;
+  return getProfitLoss(chain, chain.length - 1);
+}
+
+/* ===================== RENDERING ===================== */
+function renderProperties(){
+  const search = document.getElementById('searchInput').value.toLowerCase();
+  const typeFilter = document.getElementById('filterType').value;
+  const sortBy = document.getElementById('sortBy').value;
+
+  let filtered = properties.filter(p => {
+    const haystack = [
+      p.address, p.owner, p.notes,
+      ...p.sales.map(s => s.seller + ' ' + s.buyer)
+    ].join(' ').toLowerCase();
+    const matchesSearch = !search || haystack.includes(search);
+    const matchesType = !typeFilter || p.type === typeFilter;
+    return matchesSearch && matchesType;
+  });
+
+  filtered.sort((a,b) => {
+    if(sortBy === 'priceHigh') return getLatestPrice(b) - getLatestPrice(a);
+    if(sortBy === 'priceLow') return getLatestPrice(a) - getLatestPrice(b);
+    if(sortBy === 'name') return a.address.localeCompare(b.address);
+    return b.createdAt - a.createdAt; // recent
+  });
+
+  const listEl = document.getElementById('propertyList');
+  const emptyEl = document.getElementById('emptyState');
+
+  if(filtered.length === 0){
+    listEl.innerHTML = '';
+    emptyEl.style.display = 'block';
+  } else {
+    emptyEl.style.display = 'none';
+    listEl.innerHTML = filtered.map(p => renderPropertyCard(p)).join('');
+  }
+
+  updateDashboard();
+}
+
+function getLatestPrice(prop){
+  if(prop.sales.length > 0) return prop.sales[prop.sales.length-1].price;
+  return prop.origPrice;
+}
+
+function renderPropertyCard(prop){
+  const chain = getPropertyTimeline(prop);
+  const latestPL = getLatestPL(prop);
+  const isOpen = openCardId === prop.id;
+
+  let plBadge = '<span class="badge neutral">No resale yet</span>';
+  if(latestPL){
+    plBadge = latestPL.diff >= 0
+      ? `<span class="badge profit">▲ Profit ${formatINR(latestPL.diff)} (${latestPL.pct.toFixed(1)}%)</span>`
+      : `<span class="badge loss">▼ Loss ${formatINR(Math.abs(latestPL.diff))} (${Math.abs(latestPL.pct).toFixed(1)}%)</span>`;
+  }
+
+  const timelineHtml = chain.map((item, idx) => {
+    const pl = getProfitLoss(chain, idx);
+    let plHtml = '';
+    if(pl){
+      plHtml = pl.diff >= 0
+        ? `<div class="tl-pl profit">▲ +${formatINR(pl.diff)}<br><span style="font-weight:500;font-size:.72rem;">(${pl.pct.toFixed(1)}%)</span></div>`
+        : `<div class="tl-pl loss">▼ -${formatINR(Math.abs(pl.diff))}<br><span style="font-weight:500;font-size:.72rem;">(${pl.pct.toFixed(1)}%)</span></div>`;
+    }
+    const label = item.type === 'origin' ? 'Original Purchase' : 'Resale';
+    const deleteBtn = item.type === 'sale'
+      ? `<div class="tl-actions"><button class="btn btn-danger btn-sm" onclick="deleteSale('${prop.id}','${item.id}')">Delete</button></div>`
+      : '';
+    return `
+      <div class="tl-item">
+        <div class="tl-row">
+          <div class="tl-details">
+            <div class="price">${label}: ${formatINR(item.price)}</div>
+            <div class="parties">${item.seller !== '—' ? 'Seller: ' + escapeHtml(item.seller) + ' → ' : ''}Buyer: ${escapeHtml(item.buyer || '—')}</div>
+            <div class="date">📅 ${formatDate(item.date)}${item.commission ? ' | Commission: ' + formatINR(item.commission) : ''}</div>
+            ${item.remarks ? `<div class="date">📝 ${escapeHtml(item.remarks)}</div>` : ''}
+            ${deleteBtn}
+          </div>
+          ${plHtml}
+        </div>
+      </div>
+    `;
+  }).join('');
+
+  return `
+    <div class="property-card">
+      <div class="property-head ${isOpen ? 'open':''}" onclick="toggleCard('${prop.id}')">
+        <div class="property-info">
+          <div class="addr">${escapeHtml(prop.address)}</div>
+          <div class="meta">${escapeHtml(prop.size || 'Size N/A')} | Current Value: ${formatINR(getLatestPrice(prop))} | ${prop.sales.length} resale record(s)</div>
+        </div>
+        <div class="property-badges">
+          <span class="badge type">${escapeHtml(prop.type)}</span>
+          ${plBadge}
+          <span class="toggle-arrow ${isOpen?'open':''}">▼</span>
+        </div>
+      </div>
+      <div class="property-body ${isOpen ? 'open':''}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:14px;flex-wrap:wrap;gap:8px;">
+          <strong style="font-size:.85rem;color:var(--text-light);">Sale History Timeline</strong>
+          <div style="display:flex;gap:8px;">
+            <button class="btn btn-accent btn-sm" onclick="openSaleModal('${prop.id}')">+ Add Sale Record</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteProperty('${prop.id}')">Delete Property</button>
+          </div>
+        </div>
+        ${prop.notes ? `<p style="font-size:.82rem;color:var(--text-light);margin-top:10px;">📝 ${escapeHtml(prop.notes)}</p>` : ''}
+        <div class="timeline">${timelineHtml}</div>
+      </div>
+    </div>
+  `;
+}
+
+function toggleCard(id){
+  openCardId = (openCardId === id) ? null : id;
+  renderProperties();
+}
+
+function escapeHtml(str){
+  if(!str) return '';
+  return str.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+}
+
+/* ===================== DASHBOARD ===================== */
+function updateDashboard(){
+  const totalProps = properties.length;
+  let totalSales = 0;
+  let totalSaleValue = 0;
+  let totalProfit = 0;
+  let appreciationSum = 0;
+  let appreciationCount = 0;
+
+  properties.forEach(p => {
+    const chain = getPropertyTimeline(p);
+    totalSales += p.sales.length;
+    p.sales.forEach(s => totalSaleValue += s.price);
+    for(let i=1;i<chain.length;i++){
+      const pl = getProfitLoss(chain, i);
+      if(pl){
+        totalProfit += pl.diff;
+        appreciationSum += pl.pct;
+        appreciationCount++;
+      }
+    }
+  });
+
+  document.getElementById('statTotalProps').innerText = totalProps;
+  document.getElementById('statActiveProps').innerText = totalProps + ' listing(s) tracked';
+  document.getElementById('statTotalValue').innerText = formatINR(totalSaleValue);
+  document.getElementById('statTotalSales').innerText = totalSales + ' sale records';
+  document.getElementById('statTotalProfit').innerText = formatINR(totalProfit);
+  document.getElementById('statAvgAppreciation').innerText = appreciationCount > 0
+    ? (appreciationSum/appreciationCount).toFixed(1) + '%'
+    : '0%';
+}
+
+/* ===================== EXPORT / PRINT ===================== */
+function exportCSV(){
+  let rows = [['Property Address','Type','Size','Record Type','Seller','Buyer','Price (INR)','Date','Commission (INR)','Remarks']];
+  properties.forEach(p => {
+    const chain = getPropertyTimeline(p);
+    chain.forEach((item) => {
+      rows.push([
+        p.address, p.type, p.size || '',
+        item.type === 'origin' ? 'Original Purchase' : 'Resale',
+        item.seller, item.buyer || '', item.price, item.date || '',
+        item.commission || '', item.remarks || ''
+      ]);
+    });
+  });
+  const csvContent = rows.map(r => r.map(field => `"${String(field).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const blob = new Blob([csvContent], {type:'text/csv;charset=utf-8;'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = 'property_sale_history_' + new Date().toISOString().slice(0,10) + '.csv';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
+function printReport(){
+  window.print();
+}
+
+/* ===================== INIT ===================== */
+function init(){
+  loadData();
+  renderProperties();
+}
+init();
+</script>
+
+</body>
+</html>
